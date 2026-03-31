@@ -1,0 +1,305 @@
+import { useState, useEffect } from "react";
+
+const HABITS_CONFIG = [
+  {
+    section: "🌅 Manifestation Practice", id: "manifest", accent: "#C8773A",
+    habits: [
+      { id: "med",    icon: "🧘", name: "Morning Meditation", sub: "25 minutes · silent or guided",          time: "25 min",   pts: 20 },
+      { id: "aff",    icon: "💬", name: "Affirmations",        sub: "Speak with conviction & emotion",        time: "7 min",    pts: 10 },
+      { id: "mantra", icon: "📿", name: "Mantra Chanting",     sub: "108 repetitions · mala beads or count", time: "~15 min",  pts: 15 },
+      { id: "vis",    icon: "✨", name: "Visualisation",       sub: "See yourself in Canada, wealthy & free", time: "10 min",   pts: 15 },
+    ]
+  },
+  {
+    section: "📚 IELTS Study", id: "ielts", accent: "#7A5C9E",
+    habits: [
+      { id: "ielts-reading", icon: "📖", name: "Reading Practice",   sub: "1 full passage + question set",     time: "45 min", pts: 15 },
+      { id: "writing",       icon: "✍️", name: "Writing Practice",   sub: "Task 1 or Task 2 essay",            time: "45 min", pts: 15 },
+      { id: "listening",     icon: "🎧", name: "Listening Practice", sub: "Section 3 or 4 · academic content", time: "30 min", pts: 10 },
+      { id: "speaking",      icon: "🗣️", name: "Speaking Practice",  sub: "Part 2 cue card · record yourself", time: "20 min", pts: 10 },
+    ]
+  },
+  {
+    section: "💪 Fitness & Diet", id: "fitness", accent: "#4A8C6F",
+    habits: [
+      { id: "workout", icon: "🏋️", name: "Workout",       sub: "Strength training · core focus for abs",  time: "45–60 min", pts: 20 },
+      { id: "diet",    icon: "🥗", name: "Clean Diet",    sub: "No processed food · whole meals only",     time: "All day",   pts: 15 },
+      { id: "water",   icon: "💧", name: "Hydration",     sub: "2.5L+ water today",                        time: "All day",   pts: 5  },
+      { id: "sleep",   icon: "😴", name: "Quality Sleep", sub: "7–8 hours · screen off 30 min before",     time: "7–8 hrs",   pts: 5  },
+    ]
+  },
+  {
+    section: "🌙 Evening Rituals", id: "evening", accent: "#5A7FA8",
+    habits: [
+      { id: "bookread",  icon: "📚", name: "Book Reading",      sub: "20 min · growth, mindset or fiction",      time: "20 min", pts: 10 },
+      { id: "gratitude", icon: "🙏", name: "Gratitude Journal", sub: "3–5 things you're grateful for · feel it", time: "10 min", pts: 15 },
+    ]
+  },
+];
+
+const FRENCH = {
+  section: "🇫🇷 French Study — Phase 2", accent: "#C8773A",
+  habits: [
+    { id: "fr-listen",  icon: "🎙️", name: "French Listening", sub: "Podcast or video · immersion",  time: "30 min", pts: 15 },
+    { id: "fr-grammar", icon: "📝", name: "French Grammar",   sub: "Exercises · target CLB 7",       time: "45 min", pts: 15 },
+    { id: "fr-speak",   icon: "🗣️", name: "French Speaking",  sub: "Practice with app or tutor",     time: "20 min", pts: 15 },
+  ]
+};
+
+const MAX_PTS = HABITS_CONFIG.reduce((a,s)=>a+s.habits.reduce((b,h)=>b+h.pts,0),0);
+const DAYS = ["M","T","W","T","F","S","S"];
+const C = {
+  bg:"#FAF6EF", bg2:"#F3EDE3", card:"#FFFCF7", border:"#E8DDD0", border2:"#D6C9B8",
+  text:"#2C1F0E", text2:"#6B5740", text3:"#A8906F",
+  red:"#B8341B", redSoft:"#F5E0DA",
+  gold:"#A0732A", goldSoft:"#F5EAD0",
+  green:"#2E6B4A", greenSoft:"#D8EDE4",
+  maple:"#C8773A",
+};
+
+function getTodayKey() { return new Date().toDateString(); }
+function getTodayIdx() { const d=new Date().getDay(); return d===0?6:d-1; }
+function load(k,def) { try{return JSON.parse(localStorage.getItem(k)||def);}catch{return JSON.parse(def);} }
+
+function SectionTitle({label, accent}) {
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
+      <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,fontWeight:600,letterSpacing:"2.5px",textTransform:"uppercase",color:accent||C.gold,whiteSpace:"nowrap"}}>{label}</span>
+      <div style={{flex:1,height:1,background:C.border}}/>
+    </div>
+  );
+}
+
+function HabitCard({h, isChecked, accent, onToggle}) {
+  return (
+    <div onClick={onToggle} style={{
+      background:   isChecked ? C.greenSoft : C.card,
+      border:       `1.5px solid ${isChecked ? "#A8D4BE" : C.border}`,
+      borderLeft:   `4px solid ${isChecked ? C.green : accent}`,
+      borderRadius: 14, padding:"13px 15px",
+      display:"flex", alignItems:"center", gap:12,
+      cursor:"pointer", marginBottom:9,
+      transition:"all 0.2s ease",
+      boxShadow: isChecked ? "0 2px 10px rgba(46,107,74,0.1)" : "0 1px 4px rgba(44,31,14,0.05)",
+    }}>
+      <div style={{width:26,height:26,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#fff",transition:"all 0.2s",background:isChecked?C.green:C.bg2,border:`1.5px solid ${isChecked?C.green:C.border2}`}}>
+        {isChecked?"✓":""}
+      </div>
+      <div style={{fontSize:19,flexShrink:0}}>{h.icon}</div>
+      <div style={{flex:1}}>
+        <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:500,color:isChecked?C.green:C.text,marginBottom:2}}>{h.name}</div>
+        <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:C.text3}}>{h.sub}</div>
+      </div>
+      <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,padding:"3px 9px",borderRadius:20,background:C.goldSoft,border:`1px solid rgba(160,115,42,0.22)`,color:C.gold,flexShrink:0}}>{h.time}</div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [checked, setChecked] = useState(()=>load("habits_"+getTodayKey(),"{}"));
+  const [streak,  setStreak]  = useState(()=>load("streak_week","[]"));
+  const [toast,   setToast]   = useState({msg:"",show:false});
+  const [sparks,  setSparks]  = useState([]);
+
+  const isPhase2  = new Date() >= new Date("2025-04-13");
+  const now       = new Date();
+  const ieltsDate = new Date("2025-04-12");
+  const daysIELTS = Math.max(0,Math.ceil((ieltsDate-now)/86400000));
+  const daysCA    = Math.max(0,Math.ceil((new Date("2026-03-30")-now)/86400000));
+  const prepPct   = Math.min(100,Math.max(0,((now-new Date("2025-01-01"))/(ieltsDate-new Date("2025-01-01")))*100));
+
+  const allHabits = [...HABITS_CONFIG.flatMap(s=>s.habits), ...FRENCH.habits];
+  const totalPts  = Object.entries(checked).filter(([,v])=>v).reduce((s,[id])=>s+(allHabits.find(h=>h.id===id)?.pts||0),0);
+  const pct       = totalPts/MAX_PTS;
+  const circ      = 326.7;
+
+  const scoreMsg = [[1,"PERFECT DAY! Canada, here you come! 🇨🇦"],[0.8,"Almost there — don't stop! 🍁"],[0.6,"Over halfway — incredible! 🌟"],[0.4,"Building momentum 🔥"],[0.2,"Good start! Keep going 💪"],[0,"Let's go — start your day! 🌅"]].find(m=>pct>=m[0])[1];
+
+  useEffect(()=>{
+    localStorage.setItem("habits_"+getTodayKey(),JSON.stringify(checked));
+    if(pct>=0.6){const idx=getTodayIdx();if(!streak.includes(idx)){const ns=[...streak,idx];setStreak(ns);localStorage.setItem("streak_week",JSON.stringify(ns));}}
+  },[checked]);
+
+  function toggle(id){
+    setChecked(p=>{if(!p[id])burst();return{...p,[id]:!p[id]};});
+  }
+  function burst(){
+    const items=Array.from({length:7},(_,i)=>({id:Date.now()+i,e:["🍁","⭐","✨","🎯","💫"][Math.floor(Math.random()*5)],x:15+Math.random()*70,d:Math.random()*0.35}));
+    setSparks(s=>[...s,...items]);
+    setTimeout(()=>setSparks(s=>s.filter(x=>!items.find(i=>i.id===x.id))),1900);
+  }
+  function fireToast(msg){setToast({msg,show:true});setTimeout(()=>setToast(t=>({...t,show:false})),2800);}
+
+  function exportData(){
+    const d={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);d[k]=localStorage.getItem(k);}
+    const url=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:"application/json"}));
+    Object.assign(document.createElement("a"),{href:url,download:"canada-backup-"+new Date().toISOString().slice(0,10)+".json"}).click();
+    URL.revokeObjectURL(url);fireToast("✅ Backup exported!");
+  }
+  function importData(e){
+    const file=e.target.files[0];if(!file)return;
+    const r=new FileReader();
+    r.onload=ev=>{try{const d=JSON.parse(ev.target.result);Object.keys(d).forEach(k=>localStorage.setItem(k,d[k]));fireToast("✅ Restored! Reloading...");setTimeout(()=>window.location.reload(),1500);}catch{fireToast("❌ Invalid file");}};
+    r.readAsText(file);e.target.value="";
+  }
+
+  const todayIdx = getTodayIdx();
+  const dateStr  = now.toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+
+  return (
+    <div style={{minHeight:"100vh",background:C.bg,fontFamily:"Georgia,serif",color:C.text,overflowX:"hidden",position:"relative"}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{background:#FAF6EF;}
+        @keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(190px) rotate(400deg)}}
+        @keyframes leafPulse{0%,100%{transform:scale(1) rotate(-2deg)}50%{transform:scale(1.08) rotate(2deg)}}
+      `}</style>
+
+      {sparks.map(s=>(
+        <div key={s.id} style={{position:"fixed",top:"38%",left:s.x+"%",fontSize:20,animation:"fall 1.6s ease forwards",animationDelay:s.d+"s",pointerEvents:"none",zIndex:999}}>{s.e}</div>
+      ))}
+
+      {/* Soft bg gradients */}
+      <div style={{position:"fixed",inset:0,backgroundImage:"radial-gradient(ellipse at 10% 10%, rgba(200,119,58,0.07) 0%,transparent 50%),radial-gradient(ellipse at 90% 90%,rgba(90,127,168,0.05) 0%,transparent 50%)",pointerEvents:"none",zIndex:0}}/>
+
+      <div style={{maxWidth:760,margin:"0 auto",padding:"36px 16px 90px",position:"relative",zIndex:1}}>
+
+        {/* HEADER */}
+        <div style={{textAlign:"center",marginBottom:34}}>
+          <div style={{fontSize:50,display:"inline-block",animation:"leafPulse 4s ease-in-out infinite",marginBottom:10}}>🍁</div>
+          <h1 style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:"clamp(28px,6vw,40px)",fontWeight:700,color:C.text,lineHeight:1.1,letterSpacing:"-0.3px"}}>
+            My <span style={{color:C.red}}>Canada</span> Journey
+          </h1>
+          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:C.text3,letterSpacing:"3.5px",textTransform:"uppercase",marginTop:10}}>One Year · One Mission · Every Day Counts</p>
+          <div style={{display:"flex",alignItems:"center",gap:10,margin:"14px auto 0",maxWidth:220}}>
+            <div style={{flex:1,height:1,background:`linear-gradient(to right,transparent,${C.border2})`}}/>
+            <span style={{color:C.gold,fontSize:13}}>✦</span>
+            <div style={{flex:1,height:1,background:`linear-gradient(to left,transparent,${C.border2})`}}/>
+          </div>
+        </div>
+
+        {/* META BAR */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",background:C.card,border:`1.5px solid ${C.border}`,borderRadius:14,padding:"12px 17px",marginBottom:20,flexWrap:"wrap",gap:8,boxShadow:"0 2px 8px rgba(44,31,14,0.06)"}}>
+          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:C.text2}}>{dateStr}</span>
+          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"1.8px",textTransform:"uppercase",padding:"4px 13px",borderRadius:20,background:isPhase2?"rgba(90,127,168,0.1)":C.redSoft,border:`1px solid ${isPhase2?"rgba(90,127,168,0.28)":"rgba(184,52,27,0.22)"}`,color:isPhase2?"#4A6F94":C.red}}>
+            {isPhase2?"Phase 2 — French Push":"Phase 1 — IELTS Sprint"}
+          </span>
+          <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:C.gold,fontWeight:500}}>🇨🇦 {daysCA} days to go</span>
+        </div>
+
+        {/* IELTS COUNTDOWN */}
+        <div style={{background:`linear-gradient(135deg,${C.redSoft},#FEF7F4)`,border:`1.5px solid rgba(184,52,27,0.18)`,borderRadius:16,padding:"18px 20px",marginBottom:22,boxShadow:"0 2px 12px rgba(184,52,27,0.07)"}}>
+          <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"3px",textTransform:"uppercase",color:C.red,marginBottom:8,opacity:0.75}}>⏳ IELTS Countdown</div>
+          <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+            <div style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:54,fontWeight:700,color:C.red,lineHeight:1}}>{daysIELTS}</div>
+            <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:C.text2,lineHeight:1.7}}>
+              days until exam<br/>
+              <strong style={{color:C.text,fontWeight:600}}>April 12, 2025</strong><br/>
+              <span style={{fontSize:11,color:C.text3}}>Advanced · target Band 7.5+</span>
+            </div>
+          </div>
+          <div style={{marginTop:12,background:"rgba(184,52,27,0.1)",borderRadius:6,height:5,overflow:"hidden"}}>
+            <div style={{height:"100%",borderRadius:6,background:`linear-gradient(90deg,${C.red},${C.maple})`,width:prepPct+"%",transition:"width 0.6s ease"}}/>
+          </div>
+        </div>
+
+        {/* STREAK */}
+        <SectionTitle label="Weekly Streak" accent={C.gold}/>
+        <div style={{display:"flex",gap:10,justifyContent:"center",marginBottom:24}}>
+          {DAYS.map((d,i)=>(
+            <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
+              <div style={{width:34,height:34,borderRadius:"50%",border:`2px solid ${streak.includes(i)?C.green:i===todayIdx?C.gold:C.border2}`,background:streak.includes(i)?C.greenSoft:i===todayIdx?C.goldSoft:"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:streak.includes(i)?C.green:C.text3,boxShadow:i===todayIdx?"0 0 10px rgba(160,115,42,0.18)":"none",transition:"all 0.3s"}}>
+                {streak.includes(i)?"✓":""}
+              </div>
+              <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,color:C.text3,textTransform:"uppercase",letterSpacing:1}}>{d}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* SCORE RING */}
+        <div style={{display:"flex",justifyContent:"center",marginBottom:26}}>
+          <div style={{textAlign:"center"}}>
+            <div style={{width:128,height:128,position:"relative",margin:"0 auto 11px"}}>
+              <svg viewBox="0 0 120 120" width="128" height="128" style={{transform:"rotate(-90deg)"}}>
+                <defs><linearGradient id="rg2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor={C.red}/><stop offset="100%" stopColor={C.gold}/></linearGradient></defs>
+                <circle cx="60" cy="60" r="52" fill="none" stroke={C.border} strokeWidth="7"/>
+                <circle cx="60" cy="60" r="52" fill="none" stroke="url(#rg2)" strokeWidth="7" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ-(pct*circ)} style={{transition:"stroke-dashoffset 0.6s ease"}}/>
+              </svg>
+              <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+                <div style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:28,fontWeight:700,color:C.text,lineHeight:1}}>{Math.round(pct*100)}%</div>
+                <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:9,letterSpacing:2,color:C.text3,textTransform:"uppercase"}}>today</div>
+              </div>
+            </div>
+            <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,letterSpacing:"2.5px",textTransform:"uppercase",color:C.gold,fontWeight:500}}>Daily Score</div>
+            <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:C.text2,marginTop:4}}>{scoreMsg}</div>
+          </div>
+        </div>
+
+        {/* HABIT SECTIONS */}
+        {HABITS_CONFIG.map(sec=>(
+          <div key={sec.id} style={{marginBottom:24}}>
+            <SectionTitle label={sec.section} accent={sec.accent}/>
+            {sec.habits.map(h=><HabitCard key={h.id} h={h} isChecked={!!checked[h.id]} accent={sec.accent} onToggle={()=>toggle(h.id)}/>)}
+          </div>
+        ))}
+
+        {/* FRENCH */}
+        <div style={{marginBottom:24,opacity:isPhase2?1:0.45,pointerEvents:isPhase2?"auto":"none"}}>
+          <SectionTitle label={FRENCH.section} accent={FRENCH.accent}/>
+          {isPhase2
+            ? FRENCH.habits.map(h=><HabitCard key={h.id} h={h} isChecked={!!checked[h.id]} accent={FRENCH.accent} onToggle={()=>toggle(h.id)}/>)
+            : <div style={{background:"rgba(90,127,168,0.07)",border:"1.5px dashed rgba(90,127,168,0.28)",borderRadius:12,padding:"12px 16px",fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#4A6F94"}}>🔒 &nbsp; Unlocks April 13 · Post-IELTS · Target CLB 7+ (B2)</div>
+          }
+        </div>
+
+        {/* DIVIDER */}
+        <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0 22px"}}>
+          <div style={{flex:1,height:1,background:C.border}}/>
+          <span style={{color:C.text3,fontSize:11}}>✦</span>
+          <div style={{flex:1,height:1,background:C.border}}/>
+        </div>
+
+        {/* BACKUP */}
+        <div style={{display:"flex",gap:12,justifyContent:"center",marginBottom:12}}>
+          <button onClick={exportData} style={{flex:1,maxWidth:195,padding:"11px 14px",borderRadius:12,fontFamily:"'DM Sans',sans-serif",fontSize:11,letterSpacing:"1.5px",textTransform:"uppercase",cursor:"pointer",border:`1.5px solid rgba(184,52,27,0.28)`,background:C.redSoft,color:C.red,fontWeight:500}}>⬇ Export Backup</button>
+          <label style={{flex:1,maxWidth:195,padding:"11px 14px",borderRadius:12,fontFamily:"'DM Sans',sans-serif",fontSize:11,letterSpacing:"1.5px",textTransform:"uppercase",cursor:"pointer",border:`1.5px solid rgba(160,115,42,0.28)`,background:C.goldSoft,color:C.gold,fontWeight:500,textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            ⬆ Restore Backup
+            <input type="file" accept=".json" onChange={importData} style={{display:"none"}}/>
+          </label>
+        </div>
+        <button onClick={()=>{if(window.confirm("Reset today?"))setChecked({});localStorage.removeItem("habits_"+getTodayKey());}} style={{display:"block",margin:"0 auto",background:"transparent",border:`1px solid ${C.border2}`,color:C.text3,fontFamily:"'DM Sans',sans-serif",fontSize:11,letterSpacing:"2px",textTransform:"uppercase",padding:"10px 26px",borderRadius:10,cursor:"pointer"}}>
+          ↺ Reset Today
+        </button>
+      </div>
+
+      {/* TOAST */}
+      <div style={{position:"fixed",bottom:28,left:"50%",transform:`translateX(-50%) translateY(${toast.show?0:70}px)`,background:C.card,border:`1.5px solid ${C.border2}`,color:C.text,fontFamily:"'DM Sans',sans-serif",fontSize:12,padding:"10px 22px",borderRadius:30,transition:"transform 0.4s ease,opacity 0.4s ease",opacity:toast.show?1:0,pointerEvents:"none",zIndex:1000,boxShadow:"0 4px 18px rgba(44,31,14,0.1)",whiteSpace:"nowrap"}}>
+        {toast.msg}
+      </div>
+    </div>
+  );
+}
+
+function HabitCard({h,isChecked,accent,onToggle}){
+  return(
+    <div onClick={onToggle} style={{background:isChecked?C.greenSoft:C.card,border:`1.5px solid ${isChecked?"#A8D4BE":C.border}`,borderLeft:`4px solid ${isChecked?C.green:accent}`,borderRadius:14,padding:"13px 15px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",marginBottom:9,transition:"all 0.2s ease",boxShadow:isChecked?"0 2px 10px rgba(46,107,74,0.09)":"0 1px 4px rgba(44,31,14,0.05)"}}>
+      <div style={{width:26,height:26,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#fff",transition:"all 0.2s",background:isChecked?C.green:C.bg2,border:`1.5px solid ${isChecked?C.green:C.border2}`}}>{isChecked?"✓":""}</div>
+      <div style={{fontSize:19,flexShrink:0}}>{h.icon}</div>
+      <div style={{flex:1}}>
+        <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:500,color:isChecked?C.green:C.text,marginBottom:2}}>{h.name}</div>
+        <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:C.text3}}>{h.sub}</div>
+      </div>
+      <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,padding:"3px 9px",borderRadius:20,background:C.goldSoft,border:"1px solid rgba(160,115,42,0.22)",color:C.gold,flexShrink:0}}>{h.time}</div>
+    </div>
+  );
+}
+
+function SectionTitle({label,accent}){
+  return(
+    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
+      <span style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,fontWeight:600,letterSpacing:"2.5px",textTransform:"uppercase",color:accent||C.gold,whiteSpace:"nowrap"}}>{label}</span>
+      <div style={{flex:1,height:1,background:C.border}}/>
+    </div>
+  );
+}
