@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Canada Journey">
+<title>🍁 Canada Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #FAF6EF;
+    --bg2:       #F3EDE3;
+    --card:      #FFFCF7;
+    --border:    #E8DDD0;
+    --border2:   #D6C9B8;
+    --text:      #2C1F0E;
+    --text2:     #6B5740;
+    --text3:     #A8906F;
+    --red:       #B8341B;
+    --red-soft:  #F5E0DA;
+    --gold:      #A0732A;
+    --gold-soft: #F5EAD0;
+    --green:     #2E6B4A;
+    --green-soft:#D8EDE4;
+    --maple:     #C8773A;
+    --purple:    #7A5C9E;
+    --blue:      #5A7FA8;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at 10% 10%, rgba(200,119,58,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 90%, rgba(90,127,168,0.05) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 36px 16px 90px;
+    position: relative; z-index: 1;
+  }
+
+  /* HEADER */
+  .header { text-align: center; margin-bottom: 34px; animation: fadeUp 0.7s ease both; }
+  .leaf { font-size: 50px; display: inline-block; animation: leafPulse 4s ease-in-out infinite; margin-bottom: 10px; }
+  .header h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: clamp(28px,6vw,42px); font-weight: 700; color: var(--text); line-height: 1.1; }
+  .header h1 span { color: var(--red); }
+  .header p { font-size: 10px; color: var(--text3); letter-spacing: 3.5px; text-transform: uppercase; margin-top: 10px; }
+  .divider { display: flex; align-items: center; gap: 10px; margin: 14px auto 0; max-width: 220px; }
+  .divider-line { flex: 1; height: 1px; }
+  .divider-line.l { background: linear-gradient(to right, transparent, var(--border2)); }
+  .divider-line.r { background: linear-gradient(to left, transparent, var(--border2)); }
+  .divider-star { color: var(--gold); font-size: 13px; }
+
+  /* META BAR */
+  .meta-bar {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+    background: var(--card); border: 1.5px solid var(--border); border-radius: 14px;
+    padding: 12px 17px; margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(44,31,14,0.06);
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+  .meta-date { font-size: 12px; color: var(--text2); }
+  .phase-badge {
+    font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase;
+    padding: 4px 13px; border-radius: 20px;
+    background: var(--red-soft); border: 1px solid rgba(184,52,27,0.22); color: var(--red);
+  }
+  .phase-badge.p2 { background: rgba(90,127,168,0.1); border-color: rgba(90,127,168,0.28); color: #4A6F94; }
+  .days-left { font-size: 11px; color: var(--gold); font-weight: 500; }
+
+  /* COUNTDOWN */
+  .countdown {
+    background: linear-gradient(135deg, var(--red-soft), #FEF7F4);
+    border: 1.5px solid rgba(184,52,27,0.18); border-radius: 16px;
+    padding: 18px 20px; margin-bottom: 22px;
+    box-shadow: 0 2px 12px rgba(184,52,27,0.07);
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+  .countdown-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; opacity: 0.75; }
+  .countdown-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .countdown-num { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 700; color: var(--red); line-height: 1; }
+  .countdown-info { font-size: 13px; color: var(--text2); line-height: 1.7; }
+  .countdown-info strong { color: var(--text); font-weight: 600; }
+  .countdown-info small { font-size: 11px; color: var(--text3); }
+  .progress-wrap { margin-top: 12px; background: rgba(184,52,27,0.1); border-radius: 6px; height: 5px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--red), var(--maple)); transition: width 0.6s ease; }
+
+  /* SECTION TITLE */
+  .section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+  .section-title span { font-size: 10px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; white-space: nowrap; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* STREAK */
+  .streak-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 24px; animation: fadeUp 0.7s 0.3s ease both; }
+  .streak-day { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .streak-dot {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 2px solid var(--border2);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: var(--text3);
+    transition: all 0.3s ease;
+  }
+  .streak-dot.done { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+  .streak-dot.today { border-color: var(--gold); background: var(--gold-soft); box-shadow: 0 0 10px rgba(160,115,42,0.2); }
+  .streak-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* SCORE RING */
+  .score-section { display: flex; justify-content: center; margin-bottom: 26px; animation: fadeUp 0.7s 0.4s ease both; }
+  .score-wrap { text-align: center; }
+  .score-ring { width: 128px; height: 128px; position: relative; margin: 0 auto 11px; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-num { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 700; color: var(--text); line-height: 1; }
+  .score-sub { font-size: 9px; letter-spacing: 2px; color: var(--text3); text-transform: uppercase; }
+  .score-title { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+  .score-msg { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* HABIT CARD */
+  .section { margin-bottom: 24px; animation: fadeUp 0.7s ease both; }
+  .habit-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 13px 15px;
+    margin-bottom: 9px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(44,31,14,0.05);
+    user-select: none;
+  }
+  .habit-card:active { transform: scale(0.98); }
+  .habit-card.checked { background: var(--green-soft); border-color: #A8D4BE; box-shadow: 0 2px 10px rgba(46,107,74,0.09); }
+  .check-circle {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #fff;
+    background: var(--bg2); border: 1.5px solid var(--border2);
+    transition: all 0.2s ease;
+  }
+  .habit-card.checked .check-circle { background: var(--green); border-color: var(--green); }
+  .habit-icon { font-size: 19px; flex-shrink: 0; }
+  .habit-info { flex: 1; }
+  .habit-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; transition: color 0.2s; }
+  .habit-card.checked .habit-name { color: var(--green); }
+  .habit-sub { font-size: 11px; color: var(--text3); }
+  .time-pill {
+    font-size: 10px; padding: 3px 9px; border-radius: 20px; flex-shrink: 0;
+    background: var(--gold-soft); border: 1px solid rgba(160,115,42,0.22); color: var(--gold);
+  }
+
+  /* LOCKED */
+  .locked-banner {
+    background: rgba(90,127,168,0.07); border: 1.5px dashed rgba(90,127,168,0.28);
+    border-radius: 12px; padding: 13px 16px;
+    font-size: 12px; color: #4A6F94;
+  }
+
+  /* BUTTONS */
+  .btn-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 12px; }
+  .btn-export {
+    flex: 1; max-width: 195px; padding: 11px 14px; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; font-weight: 500;
+    border: 1.5px solid rgba(184,52,27,0.28); background: var(--red-soft); color: var(--red);
+  }
+  .btn-import {
+    flex: 1; max-width: 195px; padding: 11px 14px; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    cursor: pointer; font-weight: 500; text-align: center;
+    border: 1.5px solid rgba(160,115,42,0.28); background: var(--gold-soft); color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-reset {
+    display: block; margin: 0 auto;
+    background: transparent; border: 1px solid var(--border2); color: var(--text3);
+    font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 10px 26px; border-radius: 10px; cursor: pointer;
+  }
+  .section-divider { display: flex; align-items: center; gap: 10px; margin: 4px 0 22px; }
+  .section-divider::before, .section-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(70px);
+    background: var(--card); border: 1.5px solid var(--border2);
+    color: var(--text); font-size: 12px;
+    padding: 10px 22px; border-radius: 30px;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+    opacity: 0; pointer-events: none; z-index: 1000;
+    box-shadow: 0 4px 18px rgba(44,31,14,0.1); white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* CONFETTI */
+  .spark { position: fixed; font-size: 20px; pointer-events: none; z-index: 999; animation: fall 1.6s ease forwards; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes leafPulse { 0%,100%{transform:scale(1) rotate(-2deg)} 50%{transform:scale(1.08) rotate(2deg)} }
+  @keyframes fall { 0%{opacity:1;transform:translateY(0) rotate(0deg)} 100%{opacity:0;transform:translateY(190px) rotate(400deg)} }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="leaf">🍁</div>
+    <h1>My <span>Canada</span> Journey</h1>
+    <p>One Year · One Mission · Every Day Counts</p>
+    <div class="divider">
+      <div class="divider-line l"></div>
+      <span class="divider-star">✦</span>
+      <div class="divider-line r"></div>
+    </div>
+  </div>
+
+  <!-- META BAR -->
+  <div class="meta-bar">
+    <div class="meta-date" id="dateStr"></div>
+    <div class="phase-badge" id="phaseBadge">Phase 1 — IELTS Sprint</div>
+    <div class="days-left" id="daysLeft"></div>
+  </div>
+
+  <!-- COUNTDOWN -->
+  <div class="countdown">
+    <div class="countdown-label">⏳ IELTS Exam Countdown</div>
+    <div class="countdown-row">
+      <div class="countdown-num" id="daysIELTS">—</div>
+      <div class="countdown-info">
+        days until exam<br>
+        <strong>April 12, 2025</strong><br>
+        <small>Advanced · target Band 7.5+</small>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-fill" id="prepProgress"></div>
+    </div>
+  </div>
+
+  <!-- STREAK -->
+  <div class="section-title" style="color:var(--gold)"><span style="color:var(--gold)">Weekly Streak</span></div>
+  <div class="streak-row" id="streakRow"></div>
+
+  <!-- SCORE RING -->
+  <div class="score-section">
+    <div class="score-wrap">
+      <div class="score-ring">
+        <svg viewBox="0 0 120 120" width="128" height="128">
+          <defs>
+            <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#B8341B"/>
+              <stop offset="100%" stop-color="#A0732A"/>
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#E8DDD0" stroke-width="7"/>
+          <circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="url(#rg)" stroke-width="7"
+            stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
+            style="transition:stroke-dashoffset 0.6s ease"/>
+        </svg>
+        <div class="score-center">
+          <div class="score-num" id="scorePct">0%</div>
+          <div class="score-sub">today</div>
+        </div>
+      </div>
+      <div class="score-title">Daily Score</div>
+      <div class="score-msg" id="scoreMsg">Let's go — start your day! 🌅</div>
+    </div>
+  </div>
+
+  <!-- MANIFESTATION -->
+  <div class="section">
+    <div class="section-title"><span style="color:#C8773A">🌅 Manifestation Practice</span></div>
+    <div class="habit-card" data-id="med" data-pts="20" data-accent="#C8773A" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">🧘</div>
+      <div class="habit-info"><div class="habit-name">Morning Meditation</div><div class="habit-sub">25 minutes · silent or guided</div></div>
+      <div class="time-pill">25 min</div>
+    </div>
+    <div class="habit-card" data-id="aff" data-pts="10" data-accent="#C8773A" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">💬</div>
+      <div class="habit-info"><div class="habit-name">Affirmations</div><div class="habit-sub">Speak with conviction & emotion</div></div>
+      <div class="time-pill">7 min</div>
+    </div>
+    <div class="habit-card" data-id="mantra" data-pts="15" data-accent="#C8773A" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">📿</div>
+      <div class="habit-info"><div class="habit-name">Mantra Chanting</div><div class="habit-sub">108 repetitions · mala beads or count</div></div>
+      <div class="time-pill">~15 min</div>
+    </div>
+    <div class="habit-card" data-id="vis" data-pts="15" data-accent="#C8773A" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">✨</div>
+      <div class="habit-info"><div class="habit-name">Visualisation</div><div class="habit-sub">See yourself in Canada, wealthy & free</div></div>
+      <div class="time-pill">10 min</div>
+    </div>
+  </div>
+
+  <!-- IELTS -->
+  <div class="section">
+    <div class="section-title"><span style="color:#7A5C9E">📚 IELTS Study</span></div>
+    <div class="habit-card" data-id="ielts-r" data-pts="15" data-accent="#7A5C9E" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">📖</div>
+      <div class="habit-info"><div class="habit-name">Reading Practice</div><div class="habit-sub">1 full passage + question set</div></div>
+      <div class="time-pill">45 min</div>
+    </div>
+    <div class="habit-card" data-id="writing" data-pts="15" data-accent="#7A5C9E" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">✍️</div>
+      <div class="habit-info"><div class="habit-name">Writing Practice</div><div class="habit-sub">Task 1 or Task 2 essay</div></div>
+      <div class="time-pill">45 min</div>
+    </div>
+    <div class="habit-card" data-id="listening" data-pts="10" data-accent="#7A5C9E" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">🎧</div>
+      <div class="habit-info"><div class="habit-name">Listening Practice</div><div class="habit-sub">Section 3 or 4 · academic content</div></div>
+      <div class="time-pill">30 min</div>
+    </div>
+    <div class="habit-card" data-id="speaking" data-pts="10" data-accent="#7A5C9E" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">🗣️</div>
+      <div class="habit-info"><div class="habit-name">Speaking Practice</div><div class="habit-sub">Part 2 cue card · record yourself</div></div>
+      <div class="time-pill">20 min</div>
+    </div>
+  </div>
+
+  <!-- FITNESS -->
+  <div class="section">
+    <div class="section-title"><span style="color:#4A8C6F">💪 Fitness & Diet</span></div>
+    <div class="habit-card" data-id="workout" data-pts="20" data-accent="#4A8C6F" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">🏋️</div>
+      <div class="habit-info"><div class="habit-name">Workout</div><div class="habit-sub">Strength training · core focus for abs</div></div>
+      <div class="time-pill">45–60 min</div>
+    </div>
+    <div class="habit-card" data-id="diet" data-pts="15" data-accent="#4A8C6F" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">🥗</div>
+      <div class="habit-info"><div class="habit-name">Clean Diet</div><div class="habit-sub">No processed food · whole meals only</div></div>
+      <div class="time-pill">All day</div>
+    </div>
+    <div class="habit-card" data-id="water" data-pts="5" data-accent="#4A8C6F" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">💧</div>
+      <div class="habit-info"><div class="habit-name">Hydration</div><div class="habit-sub">2.5L+ water today</div></div>
+      <div class="time-pill">All day</div>
+    </div>
+    <div class="habit-card" data-id="sleep" data-pts="5" data-accent="#4A8C6F" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">😴</div>
+      <div class="habit-info"><div class="habit-name">Quality Sleep</div><div class="habit-sub">7–8 hours · screen off 30 min before</div></div>
+      <div class="time-pill">7–8 hrs</div>
+    </div>
+  </div>
+
+  <!-- EVENING -->
+  <div class="section">
+    <div class="section-title"><span style="color:#5A7FA8">🌙 Evening Rituals</span></div>
+    <div class="habit-card" data-id="bookread" data-pts="10" data-accent="#5A7FA8" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">📚</div>
+      <div class="habit-info"><div class="habit-name">Book Reading</div><div class="habit-sub">20 min · growth, mindset or fiction</div></div>
+      <div class="time-pill">20 min</div>
+    </div>
+    <div class="habit-card" data-id="gratitude" data-pts="15" data-accent="#5A7FA8" onclick="toggle(this)">
+      <div class="check-circle"></div><div class="habit-icon">🙏</div>
+      <div class="habit-info"><div class="habit-name">Gratitude Journal</div><div class="habit-sub">3–5 things you're grateful for · feel it</div></div>
+      <div class="time-pill">10 min</div>
+    </div>
+  </div>
+
+  <!-- FRENCH -->
+  <div class="section" id="frenchSection" style="opacity:0.45;pointer-events:none">
+    <div class="section-title"><span style="color:#C8773A">🇫🇷 French Study — Phase 2</span></div>
+    <div class="locked-banner">🔒 &nbsp; Unlocks April 13 · Post-IELTS · Target CLB 7+ (B2)</div>
+  </div>
+
+  <!-- DIVIDER -->
+  <div class="section-divider"><span style="color:var(--text3);font-size:11px">✦</span></div>
+
+  <!-- BUTTONS -->
+  <div class="btn-row">
+    <button class="btn-export" onclick="exportData()">⬇ Export Backup</button>
+    <label class="btn-import">⬆ Restore Backup<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+  </div>
+  <div style="margin-bottom:12px"></div>
+  <button class="btn-reset" onclick="resetDay()">↺ Reset Today</button>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const CIRC = 326.7;
+  let totalPts = 0, maxPts = 0;
+
+  // calc max
+  document.querySelectorAll('.habit-card').forEach(c => maxPts += +c.dataset.pts);
+
+  // init meta
+  const now        = new Date();
+  const ieltsDate  = new Date('2025-04-12');
+  const canadaDate = new Date('2026-03-30');
+  const phase2Date = new Date('2025-04-13');
+  const prepStart  = new Date('2025-01-01');
+
+  document.getElementById('dateStr').textContent =
+    now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  const daysIELTS = Math.max(0, Math.ceil((ieltsDate-now)/86400000));
+  document.getElementById('daysIELTS').textContent = daysIELTS;
+
+  const daysCA = Math.max(0, Math.ceil((canadaDate-now)/86400000));
+  document.getElementById('daysLeft').textContent = '🇨🇦 '+daysCA+' days to go';
+
+  const prepPct = Math.min(100,Math.max(0,((now-prepStart)/(ieltsDate-prepStart))*100));
+  document.getElementById('prepProgress').style.width = prepPct+'%';
+
+  if(now >= phase2Date){
+    const b = document.getElementById('phaseBadge');
+    b.textContent = 'Phase 2 — French Push'; b.classList.add('p2');
+    const fs = document.getElementById('frenchSection');
+    fs.style.opacity='1'; fs.style.pointerEvents='auto';
+    fs.innerHTML = fs.innerHTML.replace(/<div class="locked-banner">.*?<\/div>/,
+      ['fr-listen|🎙️|French Listening|Podcast or video · immersion|30 min|15',
+       'fr-grammar|📝|French Grammar|Exercises · target CLB 7|45 min|15',
+       'fr-speak|🗣️|French Speaking|Practice with app or tutor|20 min|15']
+      .map(h=>{const[id,icon,name,sub,time,pts]=h.split('|');
+        return `<div class="habit-card" data-id="${id}" data-pts="${pts}" data-accent="#C8773A" onclick="toggle(this)">
+          <div class="check-circle"></div><div class="habit-icon">${icon}</div>
+          <div class="habit-info"><div class="habit-name">${name}</div><div class="habit-sub">${sub}</div></div>
+          <div class="time-pill">${time}</div></div>`;}).join(''));
+    document.querySelectorAll('#frenchSection .habit-card').forEach(c => maxPts += +c.dataset.pts);
+  }
+
+  // build streak
+  const DAYS = ['M','T','W','T','F','S','S'];
+  const todayIdx = (now.getDay()+6)%7;
+  const savedStreak = JSON.parse(localStorage.getItem('streak_week')||'[]');
+  const row = document.getElementById('streakRow');
+  DAYS.forEach((d,i)=>{
+    const wrap=document.createElement('div'); wrap.className='streak-day';
+    const dot=document.createElement('div');
+    dot.className='streak-dot'+(savedStreak.includes(i)?' done':'')+(i===todayIdx?' today':'');
+    dot.textContent=savedStreak.includes(i)?'✓':'';
+    const lbl=document.createElement('div'); lbl.className='streak-label'; lbl.textContent=d;
+    wrap.append(dot,lbl); row.appendChild(wrap);
+  });
+
+  // update score
+  function updateScore(){
+    const p = totalPts/maxPts;
+    document.getElementById('ringArc').style.strokeDashoffset = CIRC-(p*CIRC);
+    document.getElementById('scorePct').textContent = Math.round(p*100)+'%';
+    const msgs=[[1,'PERFECT DAY! Canada, here you come! 🇨🇦'],[0.8,'Almost there — don\'t stop! 🍁'],[0.6,'Over halfway — incredible! 🌟'],[0.4,'Building momentum 🔥'],[0.2,'Good start! Keep going 💪'],[0,'Let\'s go — start your day! 🌅']];
+    document.getElementById('scoreMsg').textContent=msgs.find(m=>p>=m[0])[1];
+    if(p>=0.6){const idx=todayIdx;if(!savedStreak.includes(idx)){savedStreak.push(idx);localStorage.setItem('streak_week',JSON.stringify(savedStreak));document.querySelectorAll('.streak-dot')[idx].classList.add('done');document.querySelectorAll('.streak-dot')[idx].textContent='✓';}}
+  }
+
+  // toggle
+  function toggle(card){
+    const pts=+card.dataset.pts;
+    const on=card.classList.toggle('checked');
+    const cc=card.querySelector('.check-circle');
+    cc.textContent=on?'✓':'';
+    cc.style.background=on?'#2E6B4A':'';
+    cc.style.borderColor=on?'#2E6B4A':'';
+    // left border
+    card.style.borderLeftColor=on?'#2E6B4A':card.dataset.accent;
+    totalPts+=on?pts:-pts;
+    if(on) burst(card);
+    updateScore();
+    save();
+  }
+
+  // left border on load
+  document.querySelectorAll('.habit-card').forEach(c=>{
+    c.style.borderLeft=`4px solid ${c.dataset.accent}`;
+  });
+
+  // confetti
+  function burst(el){
+    const emojis=['🍁','⭐','✨','🎯','💫'];
+    const rect=el.getBoundingClientRect();
+    for(let i=0;i<7;i++){
+      const s=document.createElement('div'); s.className='spark';
+      s.textContent=emojis[Math.floor(Math.random()*5)];
+      s.style.left=(rect.left+Math.random()*rect.width)+'px';
+      s.style.top=(rect.top+window.scrollY)+'px';
+      s.style.animationDelay=(Math.random()*0.35)+'s';
+      document.body.appendChild(s);
+      setTimeout(()=>s.remove(),1900);
+    }
+  }
+
+  // save/load
+  function save(){
+    const key='habits_'+now.toDateString();
+    const data={};
+    document.querySelectorAll('.habit-card.checked').forEach(c=>data[c.dataset.id]=true);
+    localStorage.setItem(key,JSON.stringify(data));
+  }
+
+  function loadState(){
+    const data=JSON.parse(localStorage.getItem('habits_'+now.toDateString())||'{}');
+    Object.keys(data).forEach(id=>{
+      const c=document.querySelector(`[data-id="${id}"]`);
+      if(c){
+        c.classList.add('checked');
+        const cc=c.querySelector('.check-circle');
+        cc.textContent='✓'; cc.style.background='#2E6B4A'; cc.style.borderColor='#2E6B4A';
+        c.style.borderLeftColor='#2E6B4A';
+        totalPts+=+c.dataset.pts;
+      }
+    });
+    updateScore();
+  }
+
+  function resetDay(){
+    if(!confirm('Reset all habits for today?'))return;
+    document.querySelectorAll('.habit-card.checked').forEach(c=>{
+      c.classList.remove('checked');
+      const cc=c.querySelector('.check-circle');
+      cc.textContent=''; cc.style.background=''; cc.style.borderColor='';
+      c.style.borderLeftColor=c.dataset.accent;
+    });
+    totalPts=0; updateScore();
+    localStorage.removeItem('habits_'+now.toDateString());
+  }
+
+  // toast
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2800);
+  }
+
+  // export/import
+  function exportData(){
+    const d={};
+    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);d[k]=localStorage.getItem(k);}
+    const url=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));
+    Object.assign(document.createElement('a'),{href:url,download:'canada-backup-'+new Date().toISOString().slice(0,10)+'.json'}).click();
+    URL.revokeObjectURL(url); showToast('✅ Backup exported!');
+  }
+
+  function importData(e){
+    const file=e.target.files[0]; if(!file)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{const d=JSON.parse(ev.target.result);Object.keys(d).forEach(k=>localStorage.setItem(k,d[k]));showToast('✅ Restored! Reloading...');setTimeout(()=>location.reload(),1500);}
+      catch{showToast('❌ Invalid file');}
+    };
+    r.readAsText(file); e.target.value='';
+  }
+
+  loadState();
+</script>
+</body>
+</html>
